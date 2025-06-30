@@ -11,3 +11,5 @@
 -   [ ] Data Exploration on the [vlr.gg](https://www.vlr.gg/) match results and their attributes (mainly from players)
 -   [ ] Data Exploration on the [vlr.gg](https://www.vlr.gg/) match details (K/D Ratio, ADR, HS% etc.) (mainly from players)
 - [ ] Data Modelling (Coming soon)
+
+## Weekly updates regarding this project: 2-3x a week minimum
