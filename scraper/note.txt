@@ -1,0 +1,21 @@
+how to add header in this code:
+
+filename_impCSV = "data_match_stats_VCT2025_imp.csv"
+with open(filename_impCSV, 'w', newline='', encoding='utf-8') as file:
+    writer = csv.writer(file)
+    for i in statSidedLst_imp_vct2025:
+        writer.writerow(i)
+        
+filename_extraCSV = "data_match_stats_VCT2025_extra.csv"
+with open(filename_extraCSV, 'w', newline='', encoding='utf-8') as file:
+    writer = csv.writer(file)
+    for i in statSidedLst_extra_vct2025:
+        writer.writerow(i)
+
+The headers' name for each columns, for the 'data_match_stats_VCT2025_extra.csv' are:
+['player_name', 'map', 'side','rating2', 'acs', 'kill', 'death', 'assist', 'diff_kd', 'kast', 'avg_dmg_round', 'headshot', 'first_kill', 'first_death', 'diff_fkd', 'team_init', 'team', 'opp_team', 'event_name', 'match_type', 'match_url', 'match_datetime']
+
+While for the 'data_match_stats_VCT2025_imp.csv' are:
+['player_name', 'map', 'side','acs', 'kill', 'death', 'assist', 'diff_kd', 'team', 'opp_team', 'event_name', 'match_type', 'match_url', 'match_datetime']
+
+I attached the data

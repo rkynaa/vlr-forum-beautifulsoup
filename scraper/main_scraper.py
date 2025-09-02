@@ -97,3 +97,15 @@ statSidedLst_imp_vct2025, statSidedLst_extra_vct2025 = VCTScraper(vct2025_link, 
 
 print(statSidedLst_imp_vct2025)
 print(statSidedLst_extra_vct2025)
+
+filename_impCSV = "data_match_stats_VCT2025_imp.csv"
+with open(filename_impCSV, 'w', newline='', encoding='utf-8') as file:
+    writer = csv.writer(file)
+    for i in statSidedLst_imp_vct2025:
+        writer.writerow(i)
+        
+filename_extraCSV = "data_match_stats_VCT2025_extra.csv"
+with open(filename_extraCSV, 'w', newline='', encoding='utf-8') as file:
+    writer = csv.writer(file)
+    for i in statSidedLst_extra_vct2025:
+        writer.writerow(i)

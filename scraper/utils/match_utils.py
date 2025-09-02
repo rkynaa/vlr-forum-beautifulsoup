@@ -43,13 +43,20 @@ def maps_match(mapsMatchRaw, disabledMapsMatchRaw):
 
     for countMap in range(len(mapsMatchRaw)): # For each maps in the match
         tempLst = mapsMatchRaw[countMap].text.split() # Splitting the text into a list
-        if tempLst[1] in mapLstDisabled: # If the map is unplayed,
-            continue # Skip the map
         
         if countMap == 0: # If the map is 'All Maps',
             mapLst.append(" ".join(tempLst)) # Add entirety of the text
         else: # If not,
+            # if tempLst[1] in mapLst:
+            #     continue
             mapLst.append(tempLst[1]) # Add only the second element of the text, which is the name of the map
+
+        if tempLst[1] in mapLstDisabled: # If the map is unplayed,
+            mapLst.reverse()
+            # continue # Skip the map
+            mapLst.remove(tempLst[1])
+            mapLstDisabled.remove(tempLst[1])
+            mapLst.reverse()
         
     mapLst[0], mapLst[1] = mapLst[1], mapLst[0] # Switch the map since the query result shows the map 1 first AND THEN all maps
 
