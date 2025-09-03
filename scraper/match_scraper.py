@@ -6,7 +6,7 @@ import re
 import csv
 import calendar
 from datetime import datetime
-from utils.match_utils import datetime_match, info_match, maps_match, players_match
+from utils.match_utils import datetime_match, info_match, maps_match, players_match, stats_match, stats_match_new
 import time, random
 
 # VCTScrapper Function:
@@ -101,207 +101,18 @@ def VCTScraper(vctLink, year, upcomingEvent=[]):
             
             
             # Match's map list
-            # for i in queryMatchMaps:
-            #     print(i.text.strip().split())
             mapLst = maps_match(queryMatchMaps, queryMatchMapsDisabled)
 
             # print(matchDateTimeFinal, urlMatch, mapLst) # Checking if the match's datetime, URL and played maps are correct
             
             # Making the list of players in the match
             playersLst = players_match(queryMatchPlayers)
-            print(f"{teamNameLst} {matchInfo} {mapLst} {len(playersLst)}, {matchDateTimeFinal} {urlMatch}")
+            # print(f"{teamNameLst} {matchInfo} {mapLst} {len(playersLst)}, {matchDateTimeFinal} {urlMatch}")
             
-            # statSideInd = len(" ".join(queryMatchStats[1].text.split()).replace("/", "").split()) # Checking if the stats has all 3 sides
-            # statSideInd = "." in " ".join(queryMatchStats[1].text.split()).replace("/", "").split()[0]
-            statSideInd = queryMatchStats[0].text.split()
+            print(f"{urlMatch}")
             
-            # print("." in " ".join(queryMatchStats[1].text.split()).replace("/", "").split()[0])
-            # print(statSideInd, " ".join(queryMatchStats[1].text.split()).replace("/", "").split()[0])
+            # stats_match(statSidedLst_imp, statSidedLst_extra, queryMatchStats, statSideInd, statNumLst, statNumLst_raw, noneText, playersLst, urlMatch, teamNameLst, matchInfo, urlMatch, matchDateTimeFinal)
             
-            statNumLst = [] # Empty list of stat numbers
-            noneText = "".join(queryMatchStats[0].text.split()) # Example of empty text
-            statNumLst_raw = [] # Empty list of stat numbers in raw form (list in a list, each element has 3 sides)
-
-            # print(statSideInd)
+            stats_match_new(statSidedLst_imp, statSidedLst_extra, queryMatchStats, playersLst, mapLst, teamNameLst, matchInfo, urlMatch, matchDateTimeFinal)
             
-            if len(statSideInd) != 0: # if the stat has all 3 sides,
-                
-                # Adding the stat numbers
-                for queryMatchStat in queryMatchStats: # for each query result of the match stat
-                    textTag = " ".join(queryMatchStat.text.split()).replace("/", "").split(" ") # Removing the '/' part of the stat, to get the necessary part
-                    if textTag == noneText: # If the result text tag is empty,
-                        continue # Skip the stat
-                    else: # If actually contains a stat,
-                        if len(textTag) == 5: # If there's a leading and trailing spaces in the text tag,
-                            textTag = textTag[1:-1] # Removed the leading and trailing spaces in the text tag
-                        statNumLst_raw.append(textTag) # Add the stat into the raw list of stat numbers
-
-                for countStatNum_raw in range(0, len(statNumLst_raw), 12): # For each 12 numbers in the raw list
-                    tempLst = [] # Empty temporary stats List
-                    for countStat in range(12): # for each stat in the 12 numbers of stats
-                        tempLst.append(statNumLst_raw[countStatNum_raw+countStat]) # Add each stats
-                    statNumLst.append(tempLst) # Add the temporary stats list into the list of stats numbers 
-
-                for countPlayer in range(len(playersLst)): # For each player in the player list
-                    playersLst[countPlayer].extend(statNumLst[countPlayer]) # Each player's list got extended with the stat numbers' list
-                    # print(playerLst[countPlayer]) # Checking if the data is correct
-
-                statSidedLst = [] # Empty list of stats with sides
-
-                sides = ['All', 'Atk', 'Def'] # Each sides in a match (including 'All')
-
-                matchTeamsLst = [] # Empty list of teams in the match
-                
-                # print(playersLst[0])
-
-                for countPlayer in range(len(playersLst)): # For each player in the match
-                    for countSide in range(3): # For each side the player played in
-                        tempLst = [] # Temporary Empty List to store the proper format of the player stats
-                        tempLst.append(playersLst[countPlayer][0]) # Add the player's name into the temp list
-                        tempLst.append(sides[countSide]) # Add the side of the player played in into the temp list
-                        for countStat in range(2, len(playersLst[0]), 1): # For each stat in the player's list, EXCEPT the player's name and team name
-                            # print(playerLst[k][m], l)
-                            # if len(playerLst[i][k]) < 3:
-                            #     while len(playerLst[i][k]) != 3:
-                            #         playerLst[i][k].append('-')
-                            # tempLst.append(playerLst[k][m][l])
-                            
-                            # print(playerLst[k][m], j, len(playerLst[k][m]) != 3)
-                            if len(playersLst[countPlayer][countStat]) < 3: # If the stat is INCOMPLETE (missing stat numbers),
-                                while len(playersLst[countPlayer][countStat]) != 3: # While the stat is not complete yet,
-                                    playersLst[countPlayer][countStat].append('-') # Fill the empty part of the list with '-' to be easily filtered
-                            tempLst.append(playersLst[countPlayer][countStat][countSide]) # Add the player's sided stat into the temp list
-                            
-                        tempLst.append(playersLst[countPlayer][1]) # Add the player's team initial into the end of the temp list
-                        if playersLst[countPlayer][1] not in matchTeamsLst: # If the team name is not in the match's teams list,
-                            matchTeamsLst.append(playersLst[countPlayer][1]) # Add the team's initial into the match's teams list
-                        statSidedLst.append(tempLst) # Add the temporary list into the stat list with sides
-
-                # print(matchTeamsLst) # Print the teams that played in the match, checking the value
-
-                teamPlayerLst = {i:0 for i in matchTeamsLst}
-                # print(teamPlayerLst)
-
-                countMapPlayed = 0
-                for countStat in range(len(statSidedLst)):
-                    playerTeam = statSidedLst[countStat][-1]
-                    playerName = statSidedLst[countStat][0]
-                    if playerTeam != statSidedLst[countStat-1][-1] and teamPlayerLst[statSidedLst[countStat-1][-1]] != 0 and teamPlayerLst[playerTeam] != 0 and countStat != 0 and countStat != len(statSidedLst):
-                        # print("New Map!")
-                        countMapPlayed += 1
-                        teamPlayerLst[playerTeam] = 0
-                        teamPlayerLst[statSidedLst[countStat-1][-1]] = 0
-                    teamPlayerLst[playerTeam] += 1
-                    statSidedLst[countStat].insert(1, mapLst[countMapPlayed])
-                    if '+' in statSidedLst[countStat][8]:
-                        statSidedLst[countStat][8] = statSidedLst[countStat][8][1]
-                    if '+' in statSidedLst[countStat][-2]:
-                        statSidedLst[countStat][-2] = statSidedLst[countStat][-2][1]
-
-                for countStat in range(len(statSidedLst)):
-                    statSidedLst[countStat].append(teamNameLst[matchTeamsLst.index(statSidedLst[countStat][-1])])
-                    oppTeam = teamNameLst.copy()
-                    oppTeam.remove(statSidedLst[countStat][-1])
-                    statSidedLst[countStat].extend(oppTeam)
-                    statSidedLst[countStat].extend(matchInfo)
-                    statSidedLst[countStat].append(urlMatch)
-                    statSidedLst[countStat].append(matchDateTimeFinal)
-                
-                # print(teamPlayerLst) # Print the teams that played in the match, checking the value
-
-                for countStatSided in range(len(statSidedLst)):
-                    # print(statSidedLst[countStatSided])
-                    statSidedLst_extra.append(statSidedLst[countStatSided])
-                    # print("statSidedLst_extra: ", len(statSidedLst_extra))
-                    time.sleep(0.01)
-                    print(f"statSidedLst_extra: {len(statSidedLst_extra)}", end="\r", flush=True)
-                print()
-
-                # statSidedLstImp = []
-                print(statSidedLst)
-                for countStatSided_imp in range(len(statSidedLst)):
-                    tempLst = []
-                    if statSidedLst[countStatSided_imp][2] != 'All':
-                        continue
-                    tempLst.append(statSidedLst[countStatSided_imp][0]) # Name
-                    tempLst.append(statSidedLst[countStatSided_imp][1]) # Map Name
-                    tempLst.append(statSidedLst[countStatSided_imp][2]) # Side (All)
-                    tempLst.append(statSidedLst[countStatSided_imp][4]) # ACS
-                    tempLst.append(statSidedLst[countStatSided_imp][5]) # Kills
-                    tempLst.append(statSidedLst[countStatSided_imp][6]) # Deaths
-                    tempLst.append(statSidedLst[countStatSided_imp][7]) # Assists
-                    tempLst.append(statSidedLst[countStatSided_imp][8]) # KD
-                    tempLst.append(statSidedLst[countStatSided_imp][-7]) # Name
-                    tempLst.append(statSidedLst[countStatSided_imp][-6]) # Name
-                    tempLst.append(statSidedLst[countStatSided_imp][-5]) # Name
-                    tempLst.append(statSidedLst[countStatSided_imp][-4]) # Name
-                    tempLst.append(statSidedLst[countStatSided_imp][-3]) # Name
-                    tempLst.append(urlMatch) # Datetime
-                    tempLst.append(matchDateTimeFinal)
-                    # print(tempLst)
-                    # statSidedLstImp.append(tempLst)
-                    statSidedLst_imp.append(tempLst)
-                    time.sleep(0.01)
-                    print(f"statSidedLst_imp: {len(statSidedLst_imp)}", end="\r", flush=True)
-            
-            else: # If the stat has only one side ('All'),
-                
-                # Adding the stat numbers
-                for queryMatchStat in queryMatchStats: # for each query result of the match stat
-                    textTag = "".join(queryMatchStat.text.split()).replace("/", "") # Removing the '/' part of the stat, to get the necessary part
-                    if textTag == noneText: # If the result text tag is empty,
-                        continue # Skip the stat
-                    else: # If actually contains a stat,
-                        statNumLst_raw.append(textTag) # Add the stat into the raw list of stat numbers
-
-                for countStatNum_raw in range(0, len(statNumLst_raw), 5): # For each 5 numbers in the raw list
-                    tempLst = [] # Empty temporary stats List
-                    for countStat in range(5): # for each stat in the 5 numbers of stats
-                        tempLst.append(statNumLst_raw[countStatNum_raw+countStat]) # Add each stats
-                    statNumLst.append(tempLst) # Add the temporary stats list into the list of stats numbers
-
-                matchTeamsLst = [] # Empty list of teams in the match
-
-                for countPlayer in range(len(playersLst)): # For each player in the match
-                    playersLst[countPlayer].extend(statNumLst[countPlayer]) # Extend the player's list with the stat numbers list
-                    playersLst[countPlayer].insert(1, 'All') # Add 'All' as the side of the map being played at
-                    # print(playersLst[countPlayer][2])
-                    playersLst[countPlayer].append(playersLst[countPlayer][2]) # Add the player's team initial at the end of the list 
-                    playersLst[countPlayer].pop(2) # Remove the original player's team initial
-                    if playersLst[countPlayer][-1] not in matchTeamsLst: # If the team name is not in the match's teams list,
-                        matchTeamsLst.append(playersLst[countPlayer][-1]) # The team name will be added into the list
-
-                # print(matchTeamsLst) # Print the teams that played in the match, checking the value
-                
-                teamPlayerLst = {i:0 for i in matchTeamsLst}
-                # print(teamPlayerLst)
-
-                countMapPlayed = 0
-                for countPlayerStat in range(len(playersLst)):
-                    playerTeam = playersLst[countPlayerStat][-1]
-                    playerName = playersLst[countPlayerStat][0]
-                    if playerTeam != playersLst[countPlayerStat-1][-1] and teamPlayerLst[playersLst[countPlayerStat-1][-1]] != 0 and teamPlayerLst[playerTeam] != 0 and countPlayerStat != 0 and countPlayerStat != len(playersLst):
-                        # print("New Map!")
-                        countMapPlayed += 1
-                        teamPlayerLst[playerTeam] = 0
-                        teamPlayerLst[playersLst[countPlayerStat-1][-1]] = 0
-                    teamPlayerLst[playerTeam] += 1
-                    playersLst[countPlayerStat].insert(1, mapLst[countMapPlayed])
-                    if '+' in playersLst[countPlayerStat][-2]:
-                        playersLst[countPlayerStat][-2] = playersLst[countPlayerStat][-2][1]
-                
-                # print(teamPlayerLst) # Print the teams that played in the match, checking the value
-                    
-                for countPlayerStat in range(len(playersLst)):
-                    playersLst[countPlayerStat].append(teamNameLst[matchTeamsLst.index(playersLst[countPlayerStat][-1])])
-                    oppTeam = teamNameLst.copy()
-                    oppTeam.remove(playersLst[countPlayerStat][-1])
-                    playersLst[countPlayerStat].extend(oppTeam)
-                    playersLst[countPlayerStat].extend(matchInfo)
-                    playersLst[countPlayerStat].append(urlMatch)
-                    playersLst[countPlayerStat].append(matchDateTimeFinal)
-                    # print(playersLst[countPlayerStat])
-                    statSidedLst_imp.append(playersLst[countPlayerStat])
-                    time.sleep(0.01)
-                    print(f"statSidedLst_imp: {len(statSidedLst_imp)}", end="\r", flush=True)
     return statSidedLst_imp, statSidedLst_extra
