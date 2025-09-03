@@ -48,8 +48,6 @@ def maps_match(mapsMatchRaw, disabledMapsMatchRaw):
         if countMap == 0: # If the map is 'All Maps',
             mapLst.append(" ".join(tempLst)) # Add entirety of the text
         else: # If not,
-            # if tempLst[1] in mapLst:
-            #     continue
             mapLst.append(tempLst[1]) # Add only the second element of the text, which is the name of the map
 
         if tempLst[1] in mapLstDisabled: # If the map is unplayed,
@@ -68,10 +66,9 @@ def players_match(playersMatchRaw):
     for matchPlayer in playersMatchRaw: # For each players in the match
         matchPlayerEntry = matchPlayer.text.split()
         playersLst.append(matchPlayerEntry) # Add the player, along with the player's team initials in the list
-        # print(matchPlayerEntry) # Check if the entry is correct
     return playersLst
 
-def add_stat_nums_into_non_main_lst(matchStatsRaw, statNumLst, statNumLst_raw, noneText, sizeStats):
+def add_stat_nums_into_non_main_lst(matchStatsRaw, statNumLst, statNumLst_raw, statSideInd, sizeStats):
     join_str = " " if sizeStats == 12 else ""
     
     # Adding the stat numbers
@@ -79,20 +76,12 @@ def add_stat_nums_into_non_main_lst(matchStatsRaw, statNumLst, statNumLst_raw, n
         textTag = join_str.join(queryMatchStat.text.split()).replace("/", "") # Removing the '/' part of the stat, to get the necessary part
         if sizeStats == 12:
             textTag = textTag.split()
-        if textTag == noneText: # If the result text tag is empty,
+        if textTag == "".join(statSideInd): # If the result text tag is empty,
             continue # Skip the stat
         else: # If actually contains a stat,
             if sizeStats == 12:
                 if len(textTag) == 5: # If there's a leading and trailing spaces in the text tag,
                     textTag = textTag[1:-1] # Removed the leading and trailing spaces in the text tag
-                # textTag = textTag[1:-1] # Removed the leading and trailing spaces in the text tag
-            # print(textTag)
-            # if len(textTag) == 5: # If there's a leading and trailing spaces in the text tag,
-            # if textTag[0] == " ":
-            #     textTag = textTag[1:] # Removed the leading and trailing spaces in the text tag
-            # if textTag[-1] == " ":
-            #     textTag = textTag[:-1]
-            # print(textTag)
             statNumLst_raw.append(textTag) # Add the stat into the raw list of stat numbers
 
     for countStatNum_raw in range(0, len(statNumLst_raw), sizeStats): # For each 12 numbers in the raw list
@@ -100,6 +89,7 @@ def add_stat_nums_into_non_main_lst(matchStatsRaw, statNumLst, statNumLst_raw, n
         for countStat in range(sizeStats): # for each stat in the 12 numbers of stats
             tempLst.append(statNumLst_raw[countStatNum_raw+countStat]) # Add each stats
         statNumLst.append(tempLst) # Add the temporary stats list into the list of stats numbers
+
 
 def detect_diff_map(matchTeamsLst, mapLst, statSidedLst = None, playersLst = None):
     teamPlayerLst = {i:0 for i in matchTeamsLst}
@@ -124,40 +114,31 @@ def detect_diff_map(matchTeamsLst, mapLst, statSidedLst = None, playersLst = Non
         if '+' in rangeLst[countLst][-2]:
             rangeLst[countLst][-2] = rangeLst[countLst][-2][1]
 
+def get_match_scores(matchScoreRaw):
 
-def stat_with_sides(statSidedLst_imp, statSidedLst_extra, matchStatsRaw, statNumLst, statNumLst_raw, noneText, playersLst, mapLst, teamNameLst, matchInfo, urlMatch, matchDateTime):
+    matchScores = []
+    for countScore in range(len(matchScoreRaw)):
+        matchTeamScore = matchScoreRaw[countScore].text.strip()
+        matchScores.append(matchTeamScore)
+    
+    return matchScores
+
+
+def stat_with_sides(statSidedLst_imp, statSidedLst_extra, matchStatsRaw, matchScoresRaw, statNumLst, statNumLst_raw, statSideInd, playersLst, mapLst, teamNameLst, matchInfo, urlMatch, matchDateTime):
     
     num_stats_extra = 12
 
     # Adding the stat numbers
-    add_stat_nums_into_non_main_lst(matchStatsRaw, statNumLst, statNumLst_raw, noneText, num_stats_extra)
-    # for queryMatchStat in matchStatsRaw: # for each query result of the match stat
-    #     textTag = " ".join(queryMatchStat.text.split()).replace("/", "").split(" ") # Removing the '/' part of the stat, to get the necessary part
-    #     if textTag == noneText: # If the result text tag is empty,
-    #         continue # Skip the stat
-    #     else: # If actually contains a stat,
-    #         if len(textTag) == 5: # If there's a leading and trailing spaces in the text tag,
-    #             textTag = textTag[1:-1] # Removed the leading and trailing spaces in the text tag
-    #         statNumLst_raw.append(textTag) # Add the stat into the raw list of stat numbers
-
-
-    # for countStatNum_raw in range(0, len(statNumLst_raw), num_stats_extra): # For each 12 numbers in the raw list
-    #     tempLst = [] # Empty temporary stats List
-    #     for countStat in range(num_stats_extra): # for each stat in the 12 numbers of stats
-    #         tempLst.append(statNumLst_raw[countStatNum_raw+countStat]) # Add each stats
-    #     statNumLst.append(tempLst) # Add the temporary stats list into the list of stats numbers
+    add_stat_nums_into_non_main_lst(matchStatsRaw, statNumLst, statNumLst_raw, statSideInd, num_stats_extra)
 
     for countPlayer in range(len(playersLst)): # For each player in the player list
         playersLst[countPlayer].extend(statNumLst[countPlayer]) # Each player's list got extended with the stat numbers' list
-        # print(playerLst[countPlayer]) # Checking if the data is correct
 
     statSidedLst = [] # Empty list of stats with sides
 
     sides = ['All', 'Atk', 'Def'] # Each sides in a match (including 'All')
 
     matchTeamsLst = [] # Empty list of teams in the match
-    
-    # print(playersLst[0])
 
     for countPlayer in range(len(playersLst)): # For each player in the match
         for countSide in range(3): # For each side the player played in
@@ -165,21 +146,19 @@ def stat_with_sides(statSidedLst_imp, statSidedLst_extra, matchStatsRaw, statNum
             tempLst.append(playersLst[countPlayer][0]) # Add the player's name into the temp list
             tempLst.append(sides[countSide]) # Add the side of the player played in into the temp list
             for countStat in range(2, len(playersLst[0]), 1): # For each stat in the player's list, EXCEPT the player's name and team name
-                
-                # print(playerLst[k][m], j, len(playerLst[k][m]) != 3)
                 if len(playersLst[countPlayer][countStat]) < 3: # If the stat is INCOMPLETE (missing stat numbers),
                     while len(playersLst[countPlayer][countStat]) != 3: # While the stat is not complete yet,
                         playersLst[countPlayer][countStat].append('-') # Fill the empty part of the list with '-' to be easily filtered
                 tempLst.append(playersLst[countPlayer][countStat][countSide]) # Add the player's sided stat into the temp list
-                
             tempLst.append(playersLst[countPlayer][1]) # Add the player's team initial into the end of the temp list
             if playersLst[countPlayer][1] not in matchTeamsLst: # If the team name is not in the match's teams list,
                 matchTeamsLst.append(playersLst[countPlayer][1]) # Add the team's initial into the match's teams list
             statSidedLst.append(tempLst) # Add the temporary list into the stat list with sides
 
-    # print(matchTeamsLst) # Print the teams that played in the match, checking the value
-
     detect_diff_map(matchTeamsLst, mapLst, statSidedLst)
+
+    matchScores = [get_match_scores(matchScoresRaw)[i:i+2] for i in range(0, len(get_match_scores(matchScoresRaw)), 2)]
+    print(matchScores)
 
     for countStat in range(len(statSidedLst)):
         statSidedLst[countStat].append(teamNameLst[matchTeamsLst.index(statSidedLst[countStat][-1])])
@@ -189,8 +168,6 @@ def stat_with_sides(statSidedLst_imp, statSidedLst_extra, matchStatsRaw, statNum
         statSidedLst[countStat].extend(matchInfo)
         statSidedLst[countStat].append(urlMatch)
         statSidedLst[countStat].append(matchDateTime)
-    
-    # print(teamPlayerLst) # Print the teams that played in the match, checking the value
 
     for countStatSided in range(len(statSidedLst)):
         statSidedLst_extra.append(statSidedLst[countStatSided])
@@ -221,24 +198,12 @@ def stat_with_sides(statSidedLst_imp, statSidedLst_extra, matchStatsRaw, statNum
         print(f"statSidedLst_imp: {len(statSidedLst_imp)}, statSidedLst_extra: {len(statSidedLst_extra)}", end="\r", flush=True)
 
 
-def stat_no_sides(statSidedLst_imp, statSidedLst_extra, matchStatsRaw, statNumLst, statNumLst_raw, noneText, playersLst, mapLst, teamNameLst, matchInfo, urlMatch, matchDateTime):
+def stat_no_sides(statSidedLst_imp, statSidedLst_extra, matchStatsRaw, matchScoresRaw, statNumLst, statNumLst_raw, statSideInd, playersLst, mapLst, teamNameLst, matchInfo, urlMatch, matchDateTime):
     
     num_stats_imp = 5
 
     # Adding the stat numbers
-    add_stat_nums_into_non_main_lst(matchStatsRaw, statNumLst, statNumLst_raw, noneText, num_stats_imp)
-    # for queryMatchStat in matchStatsRaw: # for each query result of the match stat
-    #     textTag = "".join(queryMatchStat.text.split()).replace("/", "") # Removing the '/' part of the stat, to get the necessary part
-    #     if textTag == noneText: # If the result text tag is empty,
-    #         continue # Skip the stat
-    #     else: # If actually contains a stat,
-    #         statNumLst_raw.append(textTag) # Add the stat into the raw list of stat numbers
-
-    # for countStatNum_raw in range(0, len(statNumLst_raw), num_stats_imp): # For each 5 numbers in the raw list
-    #     tempLst = [] # Empty temporary stats List
-    #     for countStat in range(num_stats_imp): # for each stat in the 5 numbers of stats
-    #         tempLst.append(statNumLst_raw[countStatNum_raw+countStat]) # Add each stats
-    #     statNumLst.append(tempLst) # Add the temporary stats list into the list of stats numbers
+    add_stat_nums_into_non_main_lst(matchStatsRaw, statNumLst, statNumLst_raw, statSideInd, num_stats_imp)
 
     matchTeamsLst = [] # Empty list of teams in the match
 
@@ -250,11 +215,10 @@ def stat_no_sides(statSidedLst_imp, statSidedLst_extra, matchStatsRaw, statNumLs
         if playersLst[countPlayer][-1] not in matchTeamsLst: # If the team name is not in the match's teams list,
             matchTeamsLst.append(playersLst[countPlayer][-1]) # The team name will be added into the list
 
-    # print(matchTeamsLst) # Print the teams that played in the match, checking the value
-
     detect_diff_map(matchTeamsLst, mapLst, None, playersLst)
-    
-    # print(teamPlayerLst) # Print the teams that played in the match, checking the value
+
+    matchScores = [get_match_scores(matchScoresRaw)[i:i+2] for i in range(0, len(get_match_scores(matchScoresRaw)), 2)]
+    print(matchScores)
         
     for countPlayerStat in range(len(playersLst)):
         playersLst[countPlayerStat].append(teamNameLst[matchTeamsLst.index(playersLst[countPlayerStat][-1])])
@@ -268,18 +232,15 @@ def stat_no_sides(statSidedLst_imp, statSidedLst_extra, matchStatsRaw, statNumLs
         time.sleep(0.01)
         print(f"statSidedLst_imp: {len(statSidedLst_imp)}, statSidedLst_extra: {len(statSidedLst_extra)}", end="\r", flush=True)
 
-def stats_match_new(statSidedLst_imp, statSidedLst_extra, matchStatsRaw, playersLst, mapLst, teamNameLst, matchInfo, urlMatch, matchDateTime):
+def stats_match_new(statSidedLst_imp, statSidedLst_extra, matchStatsRaw, matchScoresRaw, playersLst, mapLst, teamNameLst, matchInfo, urlMatch, matchDateTime):
     statSideInd = matchStatsRaw[0].text.split()
-    
     statNumLst = [] # Empty list of stat numbers
-    # noneText = "".join(matchStatsRaw[0].text.split()) # Example of empty text
-    noneText = "".join(statSideInd) # Example of empty text
     statNumLst_raw = [] # Empty list of stat numbers in raw form (list in a list, each element has 3 sides)
 
     if len(statSideInd) != 0: # if the stat has all 3 sides,
 
-        stat_with_sides(statSidedLst_imp, statSidedLst_extra, matchStatsRaw, statNumLst, statNumLst_raw, noneText, playersLst, mapLst, teamNameLst, matchInfo, urlMatch, matchDateTime)
+        stat_with_sides(statSidedLst_imp, statSidedLst_extra, matchStatsRaw, matchScoresRaw, statNumLst, statNumLst_raw, statSideInd, playersLst, mapLst, teamNameLst, matchInfo, urlMatch, matchDateTime)
     
     else: # If the stat has only one side ('All'),
 
-        stat_no_sides(statSidedLst_imp, statSidedLst_extra, matchStatsRaw, statNumLst, statNumLst_raw, noneText, playersLst, mapLst, teamNameLst, matchInfo, urlMatch, matchDateTime)
+        stat_no_sides(statSidedLst_imp, statSidedLst_extra, matchStatsRaw, matchScoresRaw, statNumLst, statNumLst_raw, statSideInd, playersLst, mapLst, teamNameLst, matchInfo, urlMatch, matchDateTime)
