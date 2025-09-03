@@ -6,7 +6,7 @@ import re
 import csv
 import calendar
 from datetime import datetime
-from utils.match_utils import datetime_match, info_match, maps_match, players_match, stats_match, stats_match_new
+from utils.match_utils import datetime_match, info_match, maps_match, players_match, stats_match_new
 import time, random
 
 # VCTScrapper Function:
@@ -111,8 +111,6 @@ def VCTScraper(vctLink, year, upcomingEvent=[]):
             
             print(f"{urlMatch}")
             
-            # stats_match(statSidedLst_imp, statSidedLst_extra, queryMatchStats, statSideInd, statNumLst, statNumLst_raw, noneText, playersLst, urlMatch, teamNameLst, matchInfo, urlMatch, matchDateTimeFinal)
-            
             stats_match_new(statSidedLst_imp, statSidedLst_extra, queryMatchStats, playersLst, mapLst, teamNameLst, matchInfo, urlMatch, matchDateTimeFinal)
-            
+
     return statSidedLst_imp, statSidedLst_extra
