@@ -95,8 +95,8 @@ vct2025_upcomingEvents = [
 
 statSidedLst_imp_vct2025, statSidedLst_extra_vct2025 = VCTScraper(vct2025_link, vct2025_year, vct2025_upcomingEvents)
 
-print(statSidedLst_imp_vct2025)
-print(statSidedLst_extra_vct2025)
+# print(statSidedLst_imp_vct2025)
+# print(statSidedLst_extra_vct2025)
 
 filename_impCSV = "data_match_stats_VCT2025_imp.csv"
 with open(filename_impCSV, 'w', newline='', encoding='utf-8') as file:

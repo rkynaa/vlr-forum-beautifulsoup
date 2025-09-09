@@ -52,7 +52,6 @@ def maps_match(mapsMatchRaw, disabledMapsMatchRaw):
 
         if tempLst[1] in mapLstDisabled: # If the map is unplayed,
             mapLst.reverse()
-            # continue # Skip the map
             mapLst.remove(tempLst[1])
             mapLstDisabled.remove(tempLst[1])
             mapLst.reverse()
@@ -118,7 +117,7 @@ def get_match_scores(matchScoreRaw):
 
     matchScores = []
     for countScore in range(len(matchScoreRaw)):
-        matchTeamScore = matchScoreRaw[countScore].text.strip()
+        matchTeamScore = int(matchScoreRaw[countScore].text.strip())
         matchScores.append(matchTeamScore)
     
     return matchScores
@@ -158,10 +157,34 @@ def stat_with_sides(statSidedLst_imp, statSidedLst_extra, matchStatsRaw, matchSc
     detect_diff_map(matchTeamsLst, mapLst, statSidedLst)
 
     matchScores = [get_match_scores(matchScoresRaw)[i:i+2] for i in range(0, len(get_match_scores(matchScoresRaw)), 2)]
-    print(matchScores)
+    mapLst_noAll = mapLst.copy()
+    mapLst_noAll.remove("All Maps")
+    teamMatchResDict = {i:0 for i in matchTeamsLst}
+    # print(teamMatchResDict)
+    matchResStr = f"{matchTeamsLst[0]} vs. {matchTeamsLst[1]}, "
+    mapTeamWinLst = []
+    team1RoundTotal = 0
+    team2RoundTotal = 0
+    for countScore in range(len(matchScores)):
+        matchResStr += f"{mapLst_noAll[countScore]} {matchScores[countScore][0]}:{matchScores[countScore][1]}"
+        team1RoundTotal += matchScores[countScore][0]
+        team2RoundTotal += matchScores[countScore][1]
+        matchResStr += ", "
+        teamMatchResDict[matchTeamsLst[matchScores[countScore].index(max(matchScores[countScore]))]] += 1
+        mapTeamWinLst.append(matchTeamsLst[matchScores[countScore].index(max(matchScores[countScore]))])
+    matchWinRes = max(teamMatchResDict, key=teamMatchResDict.get)
+    matchResStr += f"{matchWinRes} wins"
+    # matchWinLst = [[mapTeam, max(teamMatchResDict, key=teamMatchResDict.get)] for mapTeam in mapTeamWinLst]
+    matchWinLst = mapTeamWinLst.copy()
+    matchWinLst.insert(1, matchWinRes)
+    # matchWinLst = [i for i in mapTeamWinLst]
+    matchTeamWinLst = [[mapLst[count], matchWinLst[count]] for count in range(len(mapLst))][::-1]
+    print(matchResStr)
+    print(matchWinLst, mapLst, matchTeamWinLst)
 
     for countStat in range(len(statSidedLst)):
         statSidedLst[countStat].append(teamNameLst[matchTeamsLst.index(statSidedLst[countStat][-1])])
+        # print(statSidedLst[countStat])
         oppTeam = teamNameLst.copy()
         oppTeam.remove(statSidedLst[countStat][-1])
         statSidedLst[countStat].extend(oppTeam)
@@ -170,6 +193,7 @@ def stat_with_sides(statSidedLst_imp, statSidedLst_extra, matchStatsRaw, matchSc
         statSidedLst[countStat].append(matchDateTime)
 
     for countStatSided in range(len(statSidedLst)):
+        # print(statSidedLst[countStatSided])
         statSidedLst_extra.append(statSidedLst[countStatSided])
         time.sleep(0.01)
         print(f"statSidedLst_imp: {len(statSidedLst_imp)}, statSidedLst_extra: {len(statSidedLst_extra)}", end="\r", flush=True)
@@ -193,6 +217,7 @@ def stat_with_sides(statSidedLst_imp, statSidedLst_extra, matchStatsRaw, matchSc
         tempLst.append(statSidedLst[countStatSided_imp][-3]) # Name
         tempLst.append(urlMatch) # Datetime
         tempLst.append(matchDateTime)
+        # print(tempLst)
         statSidedLst_imp.append(tempLst)
         time.sleep(0.01)
         print(f"statSidedLst_imp: {len(statSidedLst_imp)}, statSidedLst_extra: {len(statSidedLst_extra)}", end="\r", flush=True)
@@ -218,10 +243,49 @@ def stat_no_sides(statSidedLst_imp, statSidedLst_extra, matchStatsRaw, matchScor
     detect_diff_map(matchTeamsLst, mapLst, None, playersLst)
 
     matchScores = [get_match_scores(matchScoresRaw)[i:i+2] for i in range(0, len(get_match_scores(matchScoresRaw)), 2)]
-    print(matchScores)
+    mapLst_noAll = mapLst.copy()
+    mapLst_noAll.remove("All Maps")
+    teamMatchResDict = {i:0 for i in matchTeamsLst}
+    # print(teamMatchResDict)
+    matchResStr = f"{matchTeamsLst[0]} vs. {matchTeamsLst[1]}, "
+    mapTeamWinLst = []
+    teamsRoundTotal = [0, 0]
+    teamsMapRoundsTotal = [0 for i in mapLst_noAll]
+    for countScore in range(len(matchScores)):
+        matchResStr += f"{mapLst_noAll[countScore]} {matchScores[countScore][0]}:{matchScores[countScore][1]}"
+        teamsRoundTotal[0] += matchScores[countScore][0]
+        teamsRoundTotal[1] += matchScores[countScore][1]
+        matchResStr += ", "
+        teamMatchResDict[matchTeamsLst[matchScores[countScore].index(max(matchScores[countScore]))]] += 1
+        mapTeamWinLst.append(matchTeamsLst[matchScores[countScore].index(max(matchScores[countScore]))])
+    matchWinRes = max(teamMatchResDict, key=teamMatchResDict.get)
+    matchLossRes = min(teamMatchResDict, key=teamMatchResDict.get)
+    matchResStr += f"{matchWinRes} wins"
+    # matchWinLst = [[mapTeam, max(teamMatchResDict, key=teamMatchResDict.get)] for mapTeam in mapTeamWinLst]
+    matchWinLst = mapTeamWinLst.copy()
+    matchWinLst.insert(1, matchWinRes)
+    # matchWinLst = [i for i in mapTeamWinLst]
+    matchTeamWinLst = [[mapLst[count], matchWinLst[count]] for count in range(len(mapLst))]
+    print(matchResStr)
+    print(matchWinLst, mapLst, matchTeamWinLst)
+    print(teamsRoundTotal[matchTeamsLst.index(matchWinRes)] - teamsRoundTotal[matchTeamsLst.index(matchLossRes)])
         
     for countPlayerStat in range(len(playersLst)):
         playersLst[countPlayerStat].append(teamNameLst[matchTeamsLst.index(playersLst[countPlayerStat][-1])])
+        print(playersLst[countPlayerStat])
+        for countMatchWin in matchTeamWinLst:
+            if playersLst[countPlayerStat][1] == countMatchWin[0] and playersLst[countPlayerStat][-2] == countMatchWin[1]:
+                if countMatchWin[0] == "All Maps":
+                    print(f"Match win {teamMatchResDict[countMatchWin[1]]}")
+                else:
+                    print(f"Map win {teamMatchResDict[countMatchWin[1]]}")
+                break
+            else:
+                if countMatchWin[0] == "All Maps":
+                    print(f"Match lost {teamMatchResDict[countMatchWin[1]]}")
+                else:
+                    print(f"Map lost {teamMatchResDict[countMatchWin[1]]}")
+                break
         oppTeam = teamNameLst.copy()
         oppTeam.remove(playersLst[countPlayerStat][-1])
         playersLst[countPlayerStat].extend(oppTeam)
