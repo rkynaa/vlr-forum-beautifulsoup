@@ -74,6 +74,31 @@
 
 ### Logs
 
-2026/03/25 :
-    - Creating `main_scraper.py`
-    - Creating `match_scraper.py`
+2026/03/25
+    - Created `main_scraper/main_scraper.py`
+    - Created `main_scraper/match_scraper.py`
+    - Created `main_scraper/README.md`
+
+2026/03/26
+
+    - Coming Soon!
+
+2026/03/27
+
+    - Coming Soon!
+
+2026/03/28
+
+    - Coming Soon!
+
+2026/03/29
+
+    - Coming Soon!
+
+2026/03/30
+
+    - Coming Soon!
+
+2026/03/31
+
+    - Coming Soon!
