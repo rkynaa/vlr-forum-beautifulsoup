@@ -21,46 +21,48 @@ def vct_scraper(vctYearURL):
     vctDivEventCols = vctYearSoup.find_all("div", {"class":"events-container-col"})
     vctLinkUpcommingEvents = vctDivEventCols[0].find_all("a", {"class":"wf-card mod-flex event-item"})
     vctLinkCompletedEvents = vctDivEventCols[1].find_all("a", {"class":"wf-card mod-flex event-item"})
-
-    # print(vctLinkUpcommingEvents)
-
-    if len(vctLinkUpcommingEvents) != 0:
-        print("\nUpcoming Events...\n")
-        for vctLinkEventBlock in vctLinkUpcommingEvents:
-            vctLinkEvent = vctLinkEventBlock.get("href")
-            # vctLinkEventLst = vctLinkEvent.split('/')
-            # vctLinkEventLst.insert(2, 'matches')
-            # # print(vctLinkEventLst)
-            # vctLinkEvent = '/'.join(vctLinkEventLst) + "/?series_id=all"
-            vctLinkEvent = baseUrl + vctLinkEvent
-
-            vctDivEventTitle = vctLinkEventBlock.find("div", {"class":"event-item-title"})
-            vctEventTitle = vctDivEventTitle.text.strip()
-
-            vctDivPrizePool = vctLinkEventBlock.find("div", {"class":"mod-prize"})
-            vctPrizePool = vctDivPrizePool.text.strip().split()[0]
-            print(vctEventTitle, vctPrizePool, vctLinkEvent)
     
-    if len(vctLinkCompletedEvents) != 0:
-        print("\nCompleted Events...\n")
-        for vctLinkEventBlock in vctLinkCompletedEvents:
-            vctLinkEvent = vctLinkEventBlock.get("href")
-            vctLinkEventLst = vctLinkEvent.split('/')
+    vctUpcomingEventTitles = [vctLinkEventBlock.find("div", {"class":"event-item-title"}).text.strip() for vctLinkEventBlock in vctLinkUpcommingEvents]
+    vctCompletedEventTitles = [vctLinkEventBlock.find("div", {"class":"event-item-title"}).text.strip() for vctLinkEventBlock in vctLinkCompletedEvents]
+    
+    vctLinkEventBlocks = vctYearSoup.find_all("a", {"class":"wf-card mod-flex event-item"})
+    
+    for vctLinkEventBlock in vctLinkEventBlocks:
+        vctEventTitle = vctLinkEventBlock.find("div", {"class":"event-item-title"}).text.strip()
+        vctPrizePool = vctLinkEventBlock.find("div", {"class":"mod-prize"}).text.strip().split()[0]
+        vctLinkEvent = ""
+        if vctEventTitle in vctUpcomingEventTitles:
+            vctLinkEvent += baseUrl + vctLinkEventBlock.get("href")
+            
+        elif vctEventTitle in vctCompletedEventTitles:
+            vctLinktemp = vctLinkEventBlock.get("href")
+            vctLinkEventLst = vctLinktemp.split('/')
             vctLinkEventLst.insert(2, 'matches')
-            # print(vctLinkEventLst)
-            vctLinkEvent = '/'.join(vctLinkEventLst) + "/?series_id=all"
-            vctLinkEvent = baseUrl + vctLinkEvent
-
-            vctDivEventTitle = vctLinkEventBlock.find("div", {"class":"event-item-title"})
-            vctEventTitle = vctDivEventTitle.text.strip()
-
-            vctDivPrizePool = vctLinkEventBlock.find("div", {"class":"mod-prize"})
-            vctPrizePool = vctDivPrizePool.text.strip().split()[0]
-            print(vctEventTitle, vctPrizePool, vctLinkEvent)
-    # print(vctLinkCompletedEvents)
-    # print(vctDivEventCols)
+            vctLinkEvent += baseUrl + '/'.join(vctLinkEventLst) + "/?series_id=all"
+            
+            match_scraper(baseUrl, vctEventTitle, vctLinkEvent)
+        
+        # print(vctEventTitle, vctLinkEvent)
+            
     time.sleep(5)
     return None
 
-def match_scraper():
+def match_scraper(baseUrl, vctEventTitle, vctEventMatchLink):
+    vctMatchesSoup = BeautifulSoup(requests.get(vctEventMatchLink).content, 'html.parser')
+    vctLinkMatchBlocks = vctMatchesSoup.find_all("a", {"class":"match-item"})
+    print(F"Total match for {vctEventTitle} is {len(vctLinkMatchBlocks)}")
+    for vctLinkMatchBlock in vctLinkMatchBlocks:    
+        vctLinkMatch = baseUrl + vctLinkMatchBlock.get("href")
+        vctMatchSoup = BeautifulSoup(requests.get(vctLinkMatch).content, 'html.parser')
+        
+        matchScore = "".join(vctMatchSoup.find("div", {"class":"match-header-vs-score"}).text.strip().split()[1:4])
+        
+        matchTeamsLinkLst = vctMatchSoup.find_all("a", {"class":"match-header-link"})
+        matchTeamNames = [matchTeamsLink.text.strip() for matchTeamsLink in matchTeamsLinkLst]
+        # print(matchTeamNames)
+        
+        matchStatsAllMaps = vctMatchSoup.find("div", {"class":"vm-stats-game mod-active"})
+        matchAllMapsPlayersLst = [" ".join(matchStatsAllMapsPlayer.text.split()[::-1]) for matchStatsAllMapsPlayer in matchStatsAllMaps.find_all("td", {"class":"mod-player"})]
+        print(matchAllMapsPlayersLst)
+        print(f"{vctEventTitle} ({matchTeamNames[0]} {matchScore} {matchTeamNames[1]}) {vctLinkMatch}")
     return None
