@@ -74,4 +74,6 @@
 
 ### Logs
 
-1. 
+2026/03/25 :
+    - Creating `main_scraper.py`
+    - Creating `match_scraper.py`
