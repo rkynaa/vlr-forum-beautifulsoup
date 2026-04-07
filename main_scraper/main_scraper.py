@@ -1,7 +1,7 @@
 from match_scraper import vct_scraper
 import sys
 
-years = [2024, 2025, 2026]
+years = [2022, 2023, 2024, 2025, 2026]
 
 urlBase = "https://www.vlr.gg"
 

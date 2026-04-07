@@ -113,14 +113,14 @@ def match_scraper(baseUrl, vctEventTitle, vctEventMatchLink):
         if 'showmatch' in matchType.lower():
             continue
 
-        # print(vctLinkMatch)
+        print(vctLinkMatch)
 
         # Getting the bans and picks decisions in the match
         matchDivMapsDecisions = vctMatchSoup.find("div", {"class":"match-header-note"})
         matchMapsDecisionsStr = matchDivMapsDecisions.text
         if ';' not in matchMapsDecisionsStr:
             continue
-        
+
         matchMapsDecisionsLst = [matchMapsDecs.strip() for matchMapsDecs in matchMapsDecisionsStr.strip().split(';')]
 
         # VCT Team Stats on the current scraped match
@@ -158,7 +158,7 @@ def match_scraper(baseUrl, vctEventTitle, vctEventMatchLink):
 
         # COLUMN: 'match_map_1', 'match_map_2', 'match_map_3', 'match_map_4', 'match_map_5'
         # Getting the played maps (picked AND played)
-        print(matchMapsPlaysLst, matchScoreTotal)
+        # print(matchMapsPlaysLst, matchScoreTotal)
         matchMapsPlaysTrueLst = [matchMapsPlaysLst[i] for i in range(matchScoreTotal)]
 
         matchDivGameIDs = vctMatchSoup.find_all("div", {"class":"js-map-switch"})
