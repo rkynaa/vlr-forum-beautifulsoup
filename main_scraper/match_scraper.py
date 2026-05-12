@@ -10,7 +10,7 @@ from datetime import datetime
 # from utils.event_utils import detect_completed_events
 import time, random
 
-def vct_scraper(vctYearURL):
+def vct_scraper(vctYearURL, commandInput):
     vctYear = vctYearURL.split('-')[1]
     baseUrl = vctYearURL.split('-')[0][:-4]
     # print(baseUrl)
@@ -28,6 +28,7 @@ def vct_scraper(vctYearURL):
     vctLinkEventBlocks = vctYearSoup.find_all("a", {"class":"wf-card mod-flex event-item"})
 
     vctMatchesStats = []
+    vctPlayerStats = []
     colNames = [
         # Team Name, Aggregated Team Name
         "team_name", "team_aggr", 
@@ -58,13 +59,29 @@ def vct_scraper(vctYearURL):
             vctLinkEventLst.insert(2, 'matches')
             vctLinkEvent += baseUrl + '/'.join(vctLinkEventLst) + "/?series_id=all"
             
-            vctMatchesStats.extend(match_scraper(baseUrl, vctEventTitle, vctLinkEvent))
+            if commandInput[1] == "--match-stats":
+                vctMatchesStats.extend(match_scraper(baseUrl, vctEventTitle, vctLinkEvent))
+            elif commandInput[1] == "--player-stats":
+                vctPlayerStats.extend(player_scraper(baseUrl, vctEventTitle, vctLinkEvent))
 
+        if commandInput[1] == "--match-stats":
+            print(f"Match Stats: {len(vctMatchesStats)}", end='\r', flush=True)
+        elif commandInput[1] == "--player-stats":
+            print(f"Player Stats: {len(vctPlayerStats)}", end='\r', flush=True)
+    
+    if commandInput[1] == "--match-stats":
         print(f"Match Stats: {len(vctMatchesStats)}", end='\r', flush=True)
+    elif commandInput[1] == "--player-stats":
+        print(f"Player Stats: {len(vctPlayerStats)}", end='\r', flush=True)
     
-    print(f"Match Stats: {len(vctMatchesStats)}", end='\r', flush=True)
-    
-    output_file = f"vct_{vctYear}_match_stats.csv"
+    output_file_header = "vct_"
+    output_file = output_file_header + vctYear
+    if commandInput[1] == "--match-stats":
+        output_file += "_match_stats.csv"
+    elif commandInput[1] == "--player-stats":
+        output_file += "_player_stats.csv"
+
+    # output_file = f"vct_{vctYear}_match_stats.csv"
 
     with open(output_file, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
@@ -73,7 +90,12 @@ def vct_scraper(vctYearURL):
         writer.writerow(colNames)
 
         # write rows
-        writer.writerows(vctMatchesStats)
+        if commandInput[1] == "--match-stats":
+            writer.writerows(vctMatchesStats)
+        elif commandInput[1] == "--player-stats":
+            writer.writerows(vctPlayerStats)
+
+        # writer.writerows(vctMatchesStats)
 
     print(f"CSV saved as {output_file}")
 
@@ -319,3 +341,60 @@ def map_scraper(vctMapUrl):
         mapStatScores.append([name, scores, side_scores])
 
     return mapStatScores
+
+def player_scraper(baseUrl, vctEventTitle, vctEventMatchLink):
+    # BeautifulSoup for VCT Event's Matches
+    vctMatchesSoup = BeautifulSoup(requests.get(vctEventMatchLink).content, 'html.parser')
+
+    # Find all <a> tag for each VCT Matches
+    vctLinkMatchBlocks = vctMatchesSoup.find_all("a", {"class":"match-item"})
+    print(F"Total match for {vctEventTitle} is {len(vctLinkMatchBlocks)}")
+
+    # List of VCT matches in this current event
+    vctMatchesLst = []
+
+    # Number of Stats 
+    numStats = 0
+
+    tableNum = 0
+
+    # For each match in list of matches
+    for vctLinkMatchNum in range(len(vctLinkMatchBlocks)):
+
+        # COLUMN: 'match_url'
+        # VCT Match URL (i.e. https://www.vlr.gg/598950/bilibili-gaming-vs-edward-gaming-vct-2026-china-kickoff-lbf)
+        vctLinkMatch = baseUrl + vctLinkMatchBlocks[vctLinkMatchNum].get("href")
+
+        print(vctLinkMatch)
+
+        # BeautifulSoup for VCT Match
+        vctMatchSoup = BeautifulSoup(requests.get(vctLinkMatch).content, 'html.parser')
+
+        vctDivGames = vctMatchSoup.find_all("div", {"class":"vm-stats-game"})
+
+        teamTables = vctMatchSoup.find_all("table", {"class" : "wf-table-inset"})
+        
+        print(f"Total Tables to scrape for player stats: {len(teamTables)}")
+
+        for gameNum in range(len(vctDivGames)):
+            gameID = vctDivGames[gameNum].get("data-game-id")
+            mapName = None
+            if gameID != "all":
+                mapName = vctDivGames[gameNum].find("div", {"class":"map"}).text.split()[0]
+            else:
+                mapName = "All Maps"
+            print(mapName)
+            print(f"Number of players in Team 1: {len(teamTables[tableNum])}")
+            for teamPlayer in teamTables[tableNum]:
+                teamPlayerNameTag = teamPlayer.find("td", {"class":"mod-player"})
+                teamPlayerName = teamPlayerNameTag.find("div", {"class":"text-of"}).text
+                print(teamPlayerName)
+                print(teamPlayer)
+            tableNum += 1
+            print(f"Number of players in Team 2: {len(teamTables[tableNum])}")
+            tableNum += 1
+
+        tableNum = 0
+
+
+
